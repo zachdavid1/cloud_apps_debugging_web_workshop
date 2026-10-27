@@ -17,12 +17,11 @@ def index():
     return render_template('index.html', posts=posts)
 
 # get posts for a given tag
-@app.route('/tag/<tag>', methods=['POST'])
+@app.route('/tag/<tag>', methods=['GET', 'POST'])
 def posts_by_tag(tag):
     connection = get_flask_database_connection(app)
     post_repository = PostRepository(connection)
-    # For now, let's get all posts since the repository doesn't have all_posts_by_tag yet
-    posts = post_repository.all()
+    posts = post_repository.get_all_posts_by_tag(tag)
     return render_template('index.html', posts=posts)
 
 # create new post
@@ -30,10 +29,10 @@ def posts_by_tag(tag):
 def create_post():
     connection = get_flask_database_connection(app)
     post_repository = PostRepository(connection)
-    new_post = Post(request.form['title'], request.form['content'], request.form['tags'].split(','))
+    tags = [t.strip() for t in request.form['tags'].split(',') if t.strip()]
+    new_post = Post(request.form['title'], request.form['content'], tags)
     post_repository.create(new_post)
-    posts = post_repository.all()
-    return render_template('index.html', posts=posts)
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)

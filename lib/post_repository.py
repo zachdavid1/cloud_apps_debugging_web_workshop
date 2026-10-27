@@ -10,7 +10,7 @@ class PostRepository:
         rows = self._connection.execute('SELECT * from posts')
         posts = []
         for row in rows:
-            item = Post(row["title"], row["tags"], row["content"], row["id"])
+            item = Post(row["title"], row["content"], row["tags"], row["id"])
             posts.append(item)
         return posts
 
@@ -27,7 +27,11 @@ class PostRepository:
         self._connection.execute('INSERT INTO posts (title, content, tags) VALUES (%s, %s, %s)', [
                                  post.title, post.content, post.tags])
         return None
-
+    def get_all_posts_by_tag(self, tag):
+        rows = self._connection.execute(
+            'SELECT * FROM posts WHERE %s = ANY(tags)', [tag]
+        )
+        return [Post(row['title'], row['content'], row['tags'], row['id']) for row in rows]
     # Delete a post by its id
     def delete(self, post_id):
         self._connection.execute(
